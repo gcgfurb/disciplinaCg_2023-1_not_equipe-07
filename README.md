@@ -4,6 +4,11 @@ Para desenvolver as atividades da disciplina de Computação Gráfica favor util
 
 Alunos:  
 
+    Matheus Felipe da Silva Sychocki  
+    Mauros Milach Junior  
+    Patrick Antunes  
+    Rodrigo Luís Zimmermann  
+
 ## [Atividades da Unidade 1](Unidade1/ "Atividades da Unidade 1")  
 
 ## [Atividades da Unidade 2](Unidade2/ "Atividades da Unidade 2")  
