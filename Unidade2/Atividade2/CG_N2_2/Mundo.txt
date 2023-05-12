@@ -1,0 +1,138 @@
+using CG_Biblioteca;
+using OpenTK.Graphics.OpenGL4;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using OpenTK.Windowing.Desktop;
+using System;
+using System.Collections.Generic;
+using OpenTK.Mathematics;
+
+namespace gcgcg
+{
+    public class Mundo : GameWindow
+    {
+        private List<Objeto> objetosLista = new List<Objeto>();
+        private Objeto objetoSelecionado = null;
+        private char rotulo = '@';
+
+        private readonly float[] _sruEixos =
+        {
+      -0.5f,  0.0f,  0.0f, /* X- */      0.5f,  0.0f,  0.0f, /* X+ */
+       0.0f, -0.5f,  0.0f, /* Y- */      0.0f,  0.5f,  0.0f, /* Y+ */
+       0.0f,  0.0f, -0.5f, /* Z- */      0.0f,  0.0f,  0.5f, /* Z+ */
+    };
+
+        private List<PrimitiveType> listaTipoPrimitivo;
+        private Retangulo retangulo;
+        private int tipoPrimitivoIndice = 0;
+        public Mundo(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
+               : base(gameWindowSettings, nativeWindowSettings)
+        {
+        }
+
+        private void ObjetoNovo(Objeto objeto, Objeto objetoFilho = null)
+        {
+            if (objetoFilho == null)
+            {
+                objetosLista.Add(objeto);
+                objeto.Rotulo = rotulo = Utilitario.charProximo(rotulo);
+                objeto.ObjetoAtualizar();
+                objetoSelecionado = objeto;
+            }
+            else
+            {
+                objeto.FilhoAdicionar(objetoFilho);
+                objetoFilho.Rotulo = rotulo = Utilitario.charProximo(rotulo);
+                objetoFilho.ObjetoAtualizar();
+                objetoSelecionado = objetoFilho;
+            }
+        }
+
+        protected override void OnLoad()
+        {
+            base.OnLoad();
+
+            //Define tipos primitivos da questão
+            listaTipoPrimitivo = new List<PrimitiveType> {
+                PrimitiveType.Points,
+                PrimitiveType.Lines,
+                PrimitiveType.LineLoop,
+                PrimitiveType.Triangles,
+                PrimitiveType.TriangleStrip,
+                PrimitiveType.TriangleFan,
+                PrimitiveType.Quads
+            };
+
+            //Cria pontos no mundo conforme coordenadas
+            retangulo = new Retangulo(null, new Ponto4D(-0.1, 0.1), new Ponto4D(-0.3, 0.3));
+            retangulo.PrimitivaTipo = PrimitiveType.Points;
+            retangulo.PrimitivaTamanho = 5;
+            objetosLista.Add(retangulo);
+            objetoSelecionado = retangulo;
+        }
+
+        protected override void OnRenderFrame(FrameEventArgs e)
+        {
+            base.OnRenderFrame(e);
+
+            GL.Clear(ClearBufferMask.ColorBufferBit);
+
+#if CG_Gizmo
+            Sru3D();
+#endif
+            for (var i = 0; i < objetosLista.Count; i++)
+                objetosLista[i].Desenhar();
+
+            SwapBuffers();
+        }
+
+        protected override void OnUpdateFrame(FrameEventArgs e)
+        {
+            base.OnUpdateFrame(e);
+
+            var input = KeyboardState;
+
+            if (input.IsKeyDown(Keys.Escape))
+            {
+                Close();
+            }
+
+            if (input.IsKeyDown(Keys.Space))
+            {
+                //Verifica o indice dos tipos primitivos setados e carrega o tipo primitivo em questão
+                retangulo.PrimitivaTipo = listaTipoPrimitivo[tipoPrimitivoIndice];
+                tipoPrimitivoIndice++;
+
+                //Reseta quando chegar no ultimo tipo primitivo
+                if (tipoPrimitivoIndice == 6)
+                {
+                    tipoPrimitivoIndice = 0;
+                }
+            }
+        }
+
+        protected override void OnResize(ResizeEventArgs e)
+        {
+            base.OnResize(e);
+
+            GL.Viewport(0, 0, Size.X, Size.Y);
+        }
+
+        protected override void OnUnload()
+        {
+            foreach (var objeto in objetosLista)
+            {
+                objeto.OnUnload();
+            }
+
+            base.OnUnload();
+        }
+
+#if CG_Gizmo
+        private void Sru3D()
+        {
+        }
+#endif
+
+    }
+}
