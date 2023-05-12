@@ -1,0 +1,128 @@
+using CG_Biblioteca;
+using OpenTK.Graphics.OpenGL4;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using System.Collections.Generic;
+
+namespace gcgcg
+{
+    public class Mundo : GameWindow
+    {
+        private List<Objeto> objetosLista = new List<Objeto>();
+        private Objeto objetoSelecionado;
+        private char rotulo = '@';
+        private int _vertexBufferObject_sruEixos;
+        private int _vertexArrayObject_sruEixos;
+        private readonly float[] _sruEixos =
+    {
+      -0.1f,  0.0f,  0.0f, /* X- */      0.1f,  0.0f,  0.0f, /* X+ */
+       0.0f, -0.1f,  0.0f, /* Y- */      0.0f,  0.1f,  0.0f, /* Y+ */
+       0.0f,  0.0f, -0.1f, /* Z- */      0.0f,  0.0f,  0.1f, /* Z+ */
+    };
+
+        private Ponto4D pontoDireita = new Ponto4D(x: 0.01);
+        private Ponto4D pontoEsquerda = new Ponto4D(x: -0.01);
+        private Ponto4D pontoBaixo = new Ponto4D(y: -0.01);
+        private Ponto4D pontoCima = new Ponto4D(y: 0.01);
+
+        public Mundo(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
+          : base(gameWindowSettings, nativeWindowSettings)
+        {
+        }
+
+        private void ObjetoNovo(Objeto objeto, Objeto objetoFilho = null)
+        {
+            if (objetoFilho == null)
+            {
+                this.objetosLista.Add(objeto);
+                objeto.Rotulo = this.rotulo = Utilitario.charProximo(this.rotulo);
+                objeto.ObjetoAtualizar();
+                this.objetoSelecionado = objeto;
+            }
+            else
+            {
+                objeto.FilhoAdicionar(objetoFilho);
+                objetoFilho.Rotulo = this.rotulo = Utilitario.charProximo(this.rotulo);
+                objetoFilho.ObjetoAtualizar();
+                this.objetoSelecionado = objetoFilho;
+            }
+        }
+
+        protected override void OnLoad()
+        {
+            base.OnLoad();
+            this._vertexBufferObject_sruEixos = GL.GenBuffer();
+            this._vertexArrayObject_sruEixos = GL.GenVertexArray();
+            this.ObjetoNovo(new Spline(null));
+            Objeto objetoSelecionado = this.objetoSelecionado;
+        }
+        protected override void OnRenderFrame(FrameEventArgs e)
+        {
+            base.OnRenderFrame(e);
+            GL.Clear(ClearBufferMask.ColorBufferBit);
+
+#if CG_Gizmo
+                Sru3D();
+#endif
+            for (var i = 0; i < objetosLista.Count; i++)
+                objetosLista[i].Desenhar();
+
+            SwapBuffers();
+        }
+
+        protected override void OnUpdateFrame(FrameEventArgs e)
+        {
+            base.OnUpdateFrame(e);
+            KeyboardState keyboardState = this.KeyboardState;
+
+            Spline spline = criaSpline();
+            // Verifica se a tecla ESC foi pressionada e fecha a janela
+            if (keyboardState.IsKeyDown(Keys.Escape))
+            {
+                this.Close();
+            }
+            else
+            {
+                // Verifica se as teclas de movimentação da spline foram pressionadas e atualiza a spline com os valores correspondentes
+                if (keyboardState.IsKeyPressed(Keys.D))
+                {
+                    spline.AtualizarSpline(pontoDireita);
+                }
+                else if (keyboardState.IsKeyPressed(Keys.E))
+                {
+                    spline.AtualizarSpline(pontoEsquerda);
+                }
+                else if (keyboardState.IsKeyPressed(Keys.C))
+                {
+                    spline.AtualizarSpline(pontoCima);
+                }
+                else if (keyboardState.IsKeyPressed(Keys.B))
+                {
+                    spline.AtualizarSpline(pontoBaixo);
+                }
+                else
+                {
+                    // Verifica se a tecla de espaço foi pressionada e atualiza a spline com um novo ponto
+                    if (keyboardState.IsKeyPressed(Keys.Space))
+                    {
+                        spline.AtualizarSpline(new Ponto4D(), true);
+                    }
+                }
+            }
+        }
+        private Spline criaSpline()
+        {
+            Spline spline = this.objetoSelecionado as Spline;
+            spline.criaPontos4d();
+            spline.criarCurvaPolinomial(7);
+            return spline;
+        }
+
+        protected override void OnResize(ResizeEventArgs e)
+        {
+            base.OnResize(e);
+            GL.Viewport(0, 0, this.Size.X, this.Size.Y);
+        }
+    }
+}

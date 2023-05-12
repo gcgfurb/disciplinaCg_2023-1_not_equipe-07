@@ -1,0 +1,180 @@
+using CG_Biblioteca;
+using OpenTK.Graphics.OpenGL4;
+using System;
+
+namespace gcgcg
+{
+    internal class Spline : Objeto
+    {
+        private int pontosIndice;
+        private Ponto[] pontos = new Ponto[4];
+        private Poligono linhasSpline;
+        private Ponto4D ponto1;
+        private Ponto4D ponto2;
+        private Ponto4D ponto3;
+        private Ponto4D ponto4;
+        private Shader shaderAmarelo = new Shader("Shaders/shader.vert", "Shaders/shaderAmarela.frag");
+        private Shader shaderVermelha = new Shader("Shaders/shader.vert", "Shaders/shaderVermelha.frag");
+        private Shader shaderBranca = new Shader("Shaders/shader.vert", "Shaders/shaderBranca.frag");
+        private Shader shaderCiano = new Shader("Shaders/shader.vert", "Shaders/shaderCiano.frag");
+        private double[,] curvaDeBezier = new double[11, 4];
+
+        public Spline(Objeto teste) : base(teste)
+        {
+            this.criarPontosMundo();
+            this.criarLinhasMundo();
+            foreach (var index in System.Linq.Enumerable.Range(0, 7 + 1))
+                this.PontosAdicionar(new Ponto4D());
+        }
+
+        public void criarPontosMundo()
+        {
+            double[,] coordenadas = new double[4, 2]
+
+            {
+                {0.1, -0.1},
+                {0.1, 0.1},
+                {-0.1, 0.1},
+                {-0.1, -0.1}
+            };
+
+            for (int i = 0; i < coordenadas.GetLength(0); i++)
+            {
+                //Adicionar os pontos na coleção de pontos conforme coordenadas xy
+                this.pontos[i] = new Ponto(this, new Ponto4D(coordenadas[i, 0], coordenadas[i, 1]));
+                this.FilhoAdicionar(this.pontos[i]);
+            }
+        }
+
+        public void criarLinhasMundo()
+
+        {
+            criarLinhas();
+            addLinhasMundo();
+        }
+
+        private void criarLinhas()
+        {
+            this.linhasSpline = new Poligono(this);
+            //Tipo de relação ligação entre os pontos
+            this.linhasSpline.PrimitivaTipo = PrimitiveType.LineStrip;
+
+            for (int i = 0; i <= 3; i++)
+            {   // Cria um novo objeto Ponto4D com as coordenadas do primeiro ponto da curva selecionado.
+                Ponto4D ponto = new Ponto4D(this.pontos[i].PontosId(0));
+
+                // Adiciona o ponto criado acima à lista de pontos do objeto Poligono.
+                this.linhasSpline.PontosAdicionar(ponto);
+            }
+
+        }
+
+        private void addLinhasMundo()
+        {
+            this.linhasSpline.shaderCor = shaderCiano;
+            this.FilhoAdicionar(this.linhasSpline);
+            this.linhasSpline.ObjetoAtualizar();
+        }
+
+        public void CriaCurvaPolinomial()
+        {
+            for (int posicao = 0; posicao <= 7; ++posicao)
+            {
+                double t = (double)posicao / 7d;
+                double u = 1.0 - t;
+
+                // Calcula os coeficientes da curva de Bezier
+                double b3 = t * t * t;
+                double b2 = 3 * t * t * u;
+                double b1 = 3 * t * u * u;
+                double b0 = u * u * u;
+
+                // Calcula a posição do ponto na curva usando os coeficientes e os pontos de controle
+                double x = b0 * this.ponto1.X + b1 * this.ponto2.X + b2 * this.ponto3.X + b3 * this.ponto4.X;
+                double y = b0 * this.ponto1.Y + b1 * this.ponto2.Y + b2 * this.ponto3.Y + b3 * this.ponto4.Y;
+
+                // Altera a posição do ponto e a curva
+                this.PontosAlterar(new Ponto4D(x, y), posicao);
+            }
+            this.ObjetoAtualizar();
+        }
+
+        public void AtualizarSpline(Ponto4D pontoMover, bool mudarPontoReferencia = false)
+        {
+
+            if (mudarPontoReferencia)
+            {
+                if (this.pontosIndice >= 3)
+                {
+                    this.pontosIndice = 0;
+                }
+                else
+                {
+                    this.pontosIndice++;
+                }
+            }
+            MoveLinhas(pontoMover);
+            MovePontosMundo();
+            MoveLinhasEsquerdaDireitaCima();
+            CriaCurvaPolinomial();
+        }
+
+        private void MoveLinhas(Ponto4D pontoMover)
+        {
+            // Move a linha selecionada para a posição do ponto movido
+            mudarCorpontos();
+            this.pontos[this.pontosIndice].PontosAlterar(this.pontos[this.pontosIndice].PontosId(0) + pontoMover, 0);
+        }
+
+        private void mudarCorpontos()
+        {
+            for (int i = 0; i <= 3; i++)
+            {
+                this.pontos[i].shaderCor = shaderBranca;
+            }
+
+            this.pontos[this.pontosIndice].shaderCor = shaderVermelha;
+        }
+
+        private void MovePontosMundo()
+        {
+            // Move os pontos do mundo para a nova posição
+            this.pontos[this.pontosIndice].ObjetoAtualizar();
+        }
+
+        private void MoveLinhasEsquerdaDireitaCima()
+        {
+            // Move as linhas esquerda, direita e cima para acompanhar o movimento do ponto
+            this.linhasSpline.PontosAlterar(this.pontos[this.pontosIndice].PontosId(0), this.pontosIndice);
+            this.linhasSpline.ObjetoAtualizar();
+        }
+
+        public void criaPontos4d()
+        {
+            // Seta os pontos que serão manipulados
+            this.ponto1 = new Ponto4D(this.pontos[0].PontosId(0));
+            this.ponto2 = new Ponto4D(this.pontos[1].PontosId(0));
+            this.ponto3 = new Ponto4D(this.pontos[2].PontosId(0));
+            this.ponto4 = new Ponto4D(this.pontos[3].PontosId(0));
+        }
+
+        public void criarCurvaPolinomial(int numPontos)
+        {
+            double incremento = 1.0;
+            for (int i = 0; i < numPontos; i++)
+            {
+                double t = i * incremento;
+                double t2 = t * t;
+                double t3 = t2 * t;
+
+                // Calcula os pesos da matriz de Bezier para o ponto atual
+                this.curvaDeBezier[i, 0] = Math.Pow(1.0 - t, 3.0);
+                this.curvaDeBezier[i, 1] = 3.0 * t * Math.Pow(1.0 - t, 2.0);
+                this.curvaDeBezier[i, 2] = 3.0 * t2 * (1.0 - t);
+                this.curvaDeBezier[i, 3] = t3;
+            }
+        }
+
+    }
+}
+
