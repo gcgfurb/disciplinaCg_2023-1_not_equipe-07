@@ -140,7 +140,23 @@ namespace gcgcg
 
         public void PontosAlterar(Ponto4D pto, int posicao)
         {
-            pontosLista[posicao] = pto;
+            double x = pto.X;
+            double y = pto.Y;
+            double distanciaAtual = 0;
+            double distanciaPonto = CalcularDistancia(x, y, pontosLista[0].X, pontosLista[0].Y);
+            int pontoMaisProximo = 0;
+
+            for (int i = 1; i < pontosLista.Count; i++)
+            {
+                distanciaAtual = CalcularDistancia(x, y, pontosLista[i].X, pontosLista[i].Y);
+                if (distanciaAtual < distanciaPonto)
+                {
+                    distanciaPonto = distanciaAtual;
+                    pontoMaisProximo = i;
+                }
+            }
+
+            pontosLista[pontoMaisProximo] = pto;
             ObjetoAtualizar();
         }
 
