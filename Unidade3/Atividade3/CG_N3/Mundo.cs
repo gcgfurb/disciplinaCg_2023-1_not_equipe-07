@@ -246,10 +246,14 @@ namespace gcgcg
             {
                 objetoSelecionado.shaderCor = _shaderAzul;
             }
+            if (input.IsKeyPressed(Keys.P) && objetoSelecionado != null)
+            {
+                objetoSelecionado.abrirFecharPoligono();
+            }
             #endregion
 
             #region  Mouse
-            if (MouseState.IsButtonPressed(MouseButton.Left))
+            if (MouseState.IsButtonDown(MouseButton.Left) && objetoSelecionado != null)
             { //pick
                 System.Console.WriteLine("MouseState.IsButtonPressed(MouseButton.Left)");
                 System.Console.WriteLine("__ Valores do Espaço de Tela");
@@ -266,6 +270,12 @@ namespace gcgcg
                     addPrimeiroPontoPoligono();
                 }
             }
+            if (MouseState.IsButtonReleased(MouseButton.Left))
+            {
+                System.Console.WriteLine("MouseState.IsButtonReleased(MouseButton.Left)");
+            }
+
+
             if (MouseState.IsButtonDown(MouseButton.Right) && objetoSelecionado != null)
             {
                 System.Console.WriteLine("MouseState.IsButtonDown(MouseButton.Right)");
