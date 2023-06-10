@@ -71,7 +71,7 @@ namespace gcgcg
             }
         }
 
-        public void ObjetoAtualizar()
+        public void ObjetoAtualizar()//pick
         {
             float[] vertices = new float[pontosLista.Count * 3];
             int ptoLista = 0;
@@ -189,11 +189,24 @@ namespace gcgcg
             return Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
         }
 
+        public void abrirFecharPoligono()//pick
+        {
+            int ultimoItem = pontosLista.Count - 1;
+            Ponto4D ultimoPonto = pontosLista[ultimoItem];
 
+            if (pontosLista[ultimoItem] != null)
+            {
+                pontosLista.Remove(ultimoPonto);
+            }
+            else
+            {
+                pontosLista.Add(ultimoPonto);
+            }
+            int a = 1;
+        }
         #endregion
 
         #region Objeto: Grafo de Cena
-
         public Objeto GrafocenaBusca(char _rotulo)
         {
             if (rotulo == _rotulo)
