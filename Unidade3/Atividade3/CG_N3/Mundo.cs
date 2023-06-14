@@ -1,4 +1,4 @@
-#define CG_Gizmo  // debugar gráfico.
+﻿#define CG_Gizmo  // debugar gráfico.
 #define CG_OpenGL // render OpenGL.
 // #define CG_DirectX // render DirectX.
 #define CG_Privado // código do professor.
@@ -190,9 +190,9 @@ namespace gcgcg
             if (input.IsKeyPressed(Keys.I) && objetoSelecionado != null)
                 objetoSelecionado.MatrizAtribuirIdentidade();
             if (input.IsKeyPressed(Keys.Left) && objetoSelecionado != null)
-                //  objetoSelecionado.MatrizTranslacaoXYZ(-0.05, 0, 0);
-                if (input.IsKeyPressed(Keys.Right) && objetoSelecionado != null)
-                    objetoSelecionado.MatrizTranslacaoXYZ(0.05, 0, 0);
+                objetoSelecionado.MatrizTranslacaoXYZ(-0.05, 0, 0);
+            if (input.IsKeyPressed(Keys.Right) && objetoSelecionado != null)
+                objetoSelecionado.MatrizTranslacaoXYZ(0.05, 0, 0);
             if (input.IsKeyPressed(Keys.Up) && objetoSelecionado != null)
                 objetoSelecionado.MatrizTranslacaoXYZ(0, 0.05, 0);
             if (input.IsKeyPressed(Keys.Down) && objetoSelecionado != null)
@@ -222,13 +222,7 @@ namespace gcgcg
             }
             if (input.IsKeyPressed(Keys.D) && objetoSelecionado != null)
             {
-                objetoSelecionado.OnUnload();
-                objetoSelecionado.shaderCor = _shaderBranca;
-                objetoSelecionado = mundo.GrafocenaBuscaProximo(objetoSelecionado);
-                objetoSelecionado.shaderCor = _shaderAmarela;
-                criouLinha = false;
-                primeiroClick = false;
-                pontosPoligono = new List<Ponto4D>();
+                objetoSelecionado.removerComandoD(objetoSelecionado);
             }
             if (input.IsKeyPressed(Keys.E) && objetoSelecionado != null)
             {

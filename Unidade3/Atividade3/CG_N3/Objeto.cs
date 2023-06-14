@@ -373,5 +373,10 @@ namespace gcgcg
         }
 #endif
 
+        public void removerComandoD(Objeto objetoSelecionado)
+        {
+            pontosLista.RemoveRange(0, objetoSelecionado.pontosLista.Count);
+        }
+
     }
 }
