@@ -191,18 +191,14 @@ namespace gcgcg
 
         public void abrirFecharPoligono()//pick
         {
-            int ultimoItem = pontosLista.Count - 1;
-            Ponto4D ultimoPonto = pontosLista[ultimoItem];
+            this.PrimitivaTipo = this.PrimitivaTipo switch
+            {
+                PrimitiveType.LineLoop => PrimitiveType.LineStrip,
+                PrimitiveType.LineStrip => PrimitiveType.LineLoop,
+                _ => this.PrimitivaTipo
+            };
 
-            if (pontosLista[ultimoItem] != null)
-            {
-                pontosLista.Remove(ultimoPonto);
-            }
-            else
-            {
-                pontosLista.Add(ultimoPonto);
-            }
-            int a = 1;
+            this.ObjetoAtualizar();
         }
         #endregion
 
