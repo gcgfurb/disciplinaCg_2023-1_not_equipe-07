@@ -1,4 +1,4 @@
-﻿#define CG_Gizmo  // debugar gráfico.
+#define CG_Gizmo  // debugar gráfico.
 #define CG_OpenGL // render OpenGL.
 // #define CG_DirectX // render DirectX.
 // #define CG_Privado // código do professor.
@@ -76,24 +76,6 @@ namespace gcgcg
         private Vector2 _lastPos;
 
         private int opcaoShader = 1;
-        private Shader _shader;
-
-        private Texture _texture;
-
-        private readonly float[] _vertices =
-{
-            // Position         Texture coordinates
-             0.5f,  0.5f, 0.0f, 1.0f, 1.0f, // top right
-             0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
-            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
-            -0.5f,  0.5f, 0.0f, 0.0f, 1.0f  // top left
-        };
-
-        private readonly uint[] _indices =
-        {
-            0, 1, 3,
-            1, 2, 3
-        };
 
         private readonly float[] _verticesQ1 =
 {
@@ -141,7 +123,6 @@ namespace gcgcg
             -0.5f,  0.5f, -0.5f
         };
 
-        private int _vertexArrayObject;
 
         private readonly float[] _verticesQ3 =
        {
@@ -188,9 +169,6 @@ namespace gcgcg
             -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
             -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
         };
-
-        private int _elementBufferObject;
-
 
         private readonly float[] _verticesQ4 =
 {
@@ -575,37 +553,51 @@ namespace gcgcg
         {
             GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-            _vertexArrayObject = GL.GenVertexArray();
-            GL.BindVertexArray(_vertexArrayObject);
+            GL.Enable(EnableCap.DepthTest);
 
             _vertexBufferObject = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
-            GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, _verticesQ4.Length * sizeof(float), _verticesQ4, BufferUsageHint.StaticDraw);
 
-            _elementBufferObject = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _elementBufferObject);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices, BufferUsageHint.StaticDraw);
+            _lightingShader = new Shader("Shaders/shader.vert", "Shaders/lightingQ4.frag");
+            _lampShader = new Shader("Shaders/shader.vert", "Shaders/shaderQ4.frag");
 
-            // shader.frag has been modified yet again, take a look at it as well.
-            _shader = new Shader("Shaders/shaderTest.vert", "Shaders/shaderTest.frag");
-            _shader.Use();
+            {
+                _vaoModel = GL.GenVertexArray();
+                GL.BindVertexArray(_vaoModel);
 
-            var vertexLocation = _shader.GetAttribLocation("aPosition");
-            GL.EnableVertexAttribArray(vertexLocation);
-            GL.VertexAttribPointer(vertexLocation, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0);
+                // All of the vertex attributes have been updated to now have a stride of 8 float sizes.
+                var positionLocation = _lightingShader.GetAttribLocation("aPos");
+                GL.EnableVertexAttribArray(positionLocation);
+                GL.VertexAttribPointer(positionLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
 
-            var texCoordLocation = _shader.GetAttribLocation("aTexCoord");
-            GL.EnableVertexAttribArray(texCoordLocation);
-            GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
+                var normalLocation = _lightingShader.GetAttribLocation("aNormal");
+                GL.EnableVertexAttribArray(normalLocation);
+                GL.VertexAttribPointer(normalLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 3 * sizeof(float));
 
-            _texture = Texture.LoadFromFile("Resources/Colorido.png");
-            // Texture units are explained in Texture.cs, at the Use function.
-            // First texture goes in texture unit 0.
-            _texture.Use(TextureUnit.Texture0);
+                // The texture coords have now been added too, remember we only have 2 coordinates as the texture is 2d,
+                // so the size parameter should only be 2 for the texture coordinates.
+                var texCoordLocation = _lightingShader.GetAttribLocation("aTexCoords");
+                GL.EnableVertexAttribArray(texCoordLocation);
+                GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 8 * sizeof(float), 6 * sizeof(float));
+            }
 
-            // Next, we must setup the samplers in the shaders to use the right textures.
-            // The int we send to the uniform indicates which texture unit the sampler should use.
-            _shader.SetInt("texture0", 0);
+            {
+                _vaoLamp = GL.GenVertexArray();
+                GL.BindVertexArray(_vaoLamp);
+
+                // The lamp shader should have its stride updated aswell, however we dont actually
+                // use the texture coords for the lamp, so we dont need to add any extra attributes.
+                var positionLocation = _lampShader.GetAttribLocation("aPos");
+                GL.EnableVertexAttribArray(positionLocation);
+                GL.VertexAttribPointer(positionLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
+            }
+
+            // Our two textures are loaded in from memory, you should head over and
+            // check them out and compare them to the results.
+            _diffuseMap = Texture.LoadFromFile("Resources/container2.png");
+            _specularMap = Texture.LoadFromFile("Resources/container2_specular.png");
+
         }
 
         private void onLoadQ3()//Materials
@@ -1023,16 +1015,48 @@ namespace gcgcg
         {
 
             onLoadQ4();
-            GL.Clear(ClearBufferMask.ColorBufferBit);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            GL.BindVertexArray(_vertexArrayObject);
+            GL.BindVertexArray(_vaoModel);
 
-            _texture.Use(TextureUnit.Texture0);
-            // _shader.Use();
+            // The two textures need to be used, in this case we use the diffuse map as our 0th texture
+            // and the specular map as our 1st texture.
+            _diffuseMap.Use(TextureUnit.Texture0);
+            _specularMap.Use(TextureUnit.Texture1);
+            _lightingShader.Use();
 
-            GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
+            _lightingShader.SetMatrix4("model", Matrix4.Identity);
+            _lightingShader.SetMatrix4("view", _camera.GetViewMatrix());
+            _lightingShader.SetMatrix4("projection", _camera.GetProjectionMatrix());
 
-            //GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
+            _lightingShader.SetVector3("viewPos", _camera.Position);
+
+            // Here we specify to the shaders what textures they should refer to when we want to get the positions.
+            _lightingShader.SetInt("material.diffuse", 0);
+            _lightingShader.SetInt("material.specular", 1);
+            _lightingShader.SetVector3("material.specular", new Vector3(0.5f, 0.5f, 0.5f));
+            _lightingShader.SetFloat("material.shininess", 32.0f);
+
+            _lightingShader.SetVector3("light.position", _lightPos);
+            _lightingShader.SetVector3("light.ambient", new Vector3(0.2f));
+            _lightingShader.SetVector3("light.diffuse", new Vector3(0.5f));
+            _lightingShader.SetVector3("light.specular", new Vector3(1.0f));
+
+            GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
+
+            GL.BindVertexArray(_vaoLamp);
+
+            _lampShader.Use();
+
+            Matrix4 lampMatrix = Matrix4.Identity;
+            lampMatrix *= Matrix4.CreateScale(0.2f);
+            lampMatrix *= Matrix4.CreateTranslation(_lightPos);
+
+            _lampShader.SetMatrix4("model", lampMatrix);
+            _lampShader.SetMatrix4("view", _camera.GetViewMatrix());
+            _lampShader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+
+            GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
         }
 
         private void onRenderFrameQ3()//Materials
