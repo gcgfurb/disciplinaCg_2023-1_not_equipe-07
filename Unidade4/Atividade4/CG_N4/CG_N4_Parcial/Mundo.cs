@@ -1176,12 +1176,10 @@ namespace gcgcg
 
             #region  Mouse
 
-            if (MouseState.IsButtonPressed(MouseButton.Left))
+            if (MouseState.IsButtonDown(MouseButton.Left))
             {
-                System.Console.WriteLine("MouseState.IsButtonPressed(MouseButton.Left)");
-                System.Console.WriteLine("__ Valores do Espaço de Tela");
-                System.Console.WriteLine("Vector2 mousePosition: " + MousePosition);
-                System.Console.WriteLine("Vector2i windowSize: " + Size);
+                _camera.Position += _camera.Right * (float)e.Time * 10; // Left
+                _camera.Yaw -= cameraSpeed * (float)e.Time * 100;
             }
             if (MouseState.IsButtonDown(MouseButton.Right))
             {
