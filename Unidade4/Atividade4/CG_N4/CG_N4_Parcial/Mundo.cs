@@ -1183,15 +1183,10 @@ namespace gcgcg
                 System.Console.WriteLine("Vector2 mousePosition: " + MousePosition);
                 System.Console.WriteLine("Vector2i windowSize: " + Size);
             }
-            if (MouseState.IsButtonDown(MouseButton.Right) && objetoSelecionado != null)
+            if (MouseState.IsButtonDown(MouseButton.Right))
             {
-                System.Console.WriteLine("MouseState.IsButtonDown(MouseButton.Right)");
-                int janelaLargura = Size.X;
-                int janelaAltura = Size.Y;
-                Ponto4D mousePonto = new Ponto4D(MousePosition.X, MousePosition.Y);
-                Ponto4D sruPonto = Utilitario.NDC_TelaSRU(janelaLargura, janelaAltura, mousePonto);
-
-                objetoSelecionado.PontosAlterar(sruPonto, 0);
+                _camera.Position -= _camera.Right * (float)e.Time * 10; // Left
+                _camera.Yaw += cameraSpeed * (float)e.Time * 100;
             }
             if (MouseState.IsButtonReleased(MouseButton.Right))
             {
