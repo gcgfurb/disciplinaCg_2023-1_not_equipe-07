@@ -735,7 +735,7 @@ namespace gcgcg
             _lightingShader.SetFloat("spotLight.cutOff", MathF.Cos(MathHelper.DegreesToRadians(12.5f)));
             _lightingShader.SetFloat("spotLight.outerCutOff", MathF.Cos(MathHelper.DegreesToRadians(17.5f)));
 
-            for (int i = 0; i < _cubePositions.Length; i++)
+            for (int i = 0; i < 1; i++)
             {
                 Matrix4 model = Matrix4.CreateTranslation(_cubePositions[i]);
                 float angle = 20.0f * i;
@@ -751,7 +751,6 @@ namespace gcgcg
 
             _lampShader.SetMatrix4("view", _camera.GetViewMatrix());
             _lampShader.SetMatrix4("projection", _camera.GetProjectionMatrix());
-            // We use a loop to draw all the lights at the proper position
             for (int i = 0; i < _pointLightPositions.Length; i++)
             {
                 Matrix4 lampMatrix = Matrix4.CreateScale(0.2f);
@@ -795,18 +794,13 @@ namespace gcgcg
             _lightingShader.SetVector3("light.diffuse", new Vector3(0.5f));
             _lightingShader.SetVector3("light.specular", new Vector3(1.0f));
 
-            // We want to draw all the cubes at their respective positions
-            for (int i = 0; i < _cubePositions.Length; i++)
+            for (int i = 0; i < 1; i++)
             {
-                // Then we translate said matrix by the cube position
                 Matrix4 model = Matrix4.CreateTranslation(_cubePositions[i]);
-                // We then calculate the angle and rotate the model around an axis
                 float angle = 20.0f * i;
                 model = model * Matrix4.CreateFromAxisAngle(new Vector3(1.0f, 0.3f, 0.5f), angle);
-                // Remember to set the model at last so it can be used by opentk
                 _lightingShader.SetMatrix4("model", model);
 
-                // At last we draw all our cubes
                 GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
             }
 
@@ -853,19 +847,13 @@ namespace gcgcg
             _lightingShader.SetVector3("light.diffuse", new Vector3(0.5f));
             _lightingShader.SetVector3("light.specular", new Vector3(1.0f));
 
-            // We want to draw all the cubes at their respective positions
-            for (int i = 0; i < _cubePositions.Length; i++)
+            for (int i = 0; i < 1; i++)
             {
-                // First we create a model from an identity matrix
-                // Then we translate said matrix by the cube position
                 Matrix4 model = Matrix4.CreateTranslation(_cubePositions[i]);
-                // We then calculate the angle and rotate the model around an axis
                 float angle = 20.0f * i;
                 model = model * Matrix4.CreateFromAxisAngle(new Vector3(1.0f, 0.3f, 0.5f), angle);
-                // Remember to set the model at last so it can be used by opentk
                 _lightingShader.SetMatrix4("model", model);
 
-                // At last we draw all our cubes
                 GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
             }
 
@@ -975,24 +963,18 @@ namespace gcgcg
             _lightingShader.SetVector3("material.specular", new Vector3(0.5f, 0.5f, 0.5f));
             _lightingShader.SetFloat("material.shininess", 32.0f);
 
-            // Directional light needs a direction, in this example we just use (-0.2, -1.0, -0.3f) as the lights direction
             _lightingShader.SetVector3("light.direction", new Vector3(-0.2f, -1.0f, -0.3f));
             _lightingShader.SetVector3("light.ambient", new Vector3(0.2f));
             _lightingShader.SetVector3("light.diffuse", new Vector3(0.5f));
             _lightingShader.SetVector3("light.specular", new Vector3(1.0f));
 
-            // We want to draw all the cubes at their respective positions
-            for (int i = 0; i < _cubePositions.Length; i++)
+            for (int i = 0; i < 1; i++)
             {
-                // Then we translate said matrix by the cube position
                 Matrix4 model = Matrix4.CreateTranslation(_cubePositions[i]);
-                // We then calculate the angle and rotate the model around an axis
                 float angle = 20.0f * i;
                 model = model * Matrix4.CreateFromAxisAngle(new Vector3(1.0f, 0.3f, 0.5f), angle);
-                // Remember to set the model at last so it can be used by opentk
                 _lightingShader.SetMatrix4("model", model);
 
-                // At last we draw all our cubes
                 GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
             }
 
@@ -1019,8 +1001,6 @@ namespace gcgcg
 
             GL.BindVertexArray(_vaoModel);
 
-            // The two textures need to be used, in this case we use the diffuse map as our 0th texture
-            // and the specular map as our 1st texture.
             _diffuseMap.Use(TextureUnit.Texture0);
             _specularMap.Use(TextureUnit.Texture1);
             _lightingShader.Use();
@@ -1031,7 +1011,6 @@ namespace gcgcg
 
             _lightingShader.SetVector3("viewPos", _camera.Position);
 
-            // Here we specify to the shaders what textures they should refer to when we want to get the positions.
             _lightingShader.SetInt("material.diffuse", 0);
             _lightingShader.SetInt("material.specular", 1);
             _lightingShader.SetVector3("material.specular", new Vector3(0.5f, 0.5f, 0.5f));
@@ -1075,21 +1054,17 @@ namespace gcgcg
 
             _lightingShader.SetVector3("viewPos", _camera.Position);
 
-            // Here we set the material values of the cube, the material struct is just a container so to access
-            // the underlying values we simply type "material.value" to get the location of the uniform
             _lightingShader.SetVector3("material.ambient", new Vector3(1.0f, 0.5f, 0.31f));
             _lightingShader.SetVector3("material.diffuse", new Vector3(1.0f, 0.5f, 0.31f));
             _lightingShader.SetVector3("material.specular", new Vector3(0.5f, 0.5f, 0.5f));
             _lightingShader.SetFloat("material.shininess", 32.0f);
 
-            // This is where we change the lights color over time using the sin function
             Vector3 lightColor;
             float time = DateTime.Now.Second + DateTime.Now.Millisecond / 1000f;
             lightColor.X = (MathF.Sin(time * 2.0f) + 1) / 2f;
             lightColor.Y = (MathF.Sin(time * 0.7f) + 1) / 2f;
             lightColor.Z = (MathF.Sin(time * 1.3f) + 1) / 2f;
 
-            // The ambient light is less intensive than the diffuse light in order to make it less dominant
             Vector3 ambientColor = lightColor * new Vector3(0.2f);
             Vector3 diffuseColor = lightColor * new Vector3(0.5f);
 
@@ -1119,7 +1094,6 @@ namespace gcgcg
         {
             base.OnUpdateFrame(e);
 
-            // ☞ 396c2670-8ce0-4aff-86da-0f58cd8dcfdc   TODO: forma otimizada para teclado.
             #region Teclado
             var input = KeyboardState;
             if (input.IsKeyDown(Keys.Escape))
